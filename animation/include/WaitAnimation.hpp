@@ -2,10 +2,10 @@
 #include "CAnimation.hpp"
 
 template <typename DurationType = std::chrono::milliseconds>
-class WaitAnimation : public CAnimation<DurationType>
+class WaitAnimationImpl : public CAnimation<DurationType>
 {
 public:
-    WaitAnimation(DurationType duration) : m_Duration{duration} {}
+    WaitAnimationImpl(DurationType duration) : m_Duration{duration} {}
 
     void play_impl(DurationType ms)
     {
@@ -17,3 +17,5 @@ protected:
     DurationType m_Duration;
     DurationType m_CurrentTime;
 };
+
+using WaitAnimation = WaitAnimationImpl<>;

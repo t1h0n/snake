@@ -70,16 +70,16 @@ std::function<float(float)> mapEnumToFunctor(EasingType type)
 
 template <typename Obj, typename ValueType, typename ValueSetter, typename DurationType = std::chrono::milliseconds,
           typename = std::enable_if_t<std::is_invocable_v<ValueSetter, Obj&, ValueType const&>>>
-class ValueSettingAnimation : public CAnimation<DurationType>
+class ValueSettingAnimationImpl : public CAnimation<DurationType>
 {
 public:
-    ValueSettingAnimation(const std::shared_ptr<Obj>& obj, ValueType start, ValueType end, DurationType duration,
+    ValueSettingAnimationImpl(const std::shared_ptr<Obj>& obj, ValueType start, ValueType end, DurationType duration,
                           EasingType type = EasingType::Linear)
         : m_Object{obj}, m_Start{std::move(start)}, m_End{std::move(end)}, m_CurrentTime{0},
           m_Duration{duration}, m_TimeTransformer{mapEnumToFunctor(type)}
     {
     }
-    ValueSettingAnimation(const std::shared_ptr<Obj>& obj, ValueType start, ValueType end, DurationType duration,
+    ValueSettingAnimationImpl(const std::shared_ptr<Obj>& obj, ValueType start, ValueType end, DurationType duration,
                           std::function<float(float)> time_transforemer)
         : m_Object{obj}, m_Start{std::move(start)}, m_End{std::move(end)}, m_CurrentTime{0},
           m_Duration{duration}, m_TimeTransformer{std::move(time_transforemer)}

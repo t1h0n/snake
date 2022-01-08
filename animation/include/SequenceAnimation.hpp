@@ -5,11 +5,11 @@
 
 template <typename DurationType = std::chrono::milliseconds,
           typename AnimationPointerType = std::unique_ptr<IAnimation<DurationType>>>
-class SequenceAnimation : public CAnimation<DurationType>
+class SequenceAnimationImpl : public CAnimation<DurationType>
 {
 public:
     template <typename... Args>
-    SequenceAnimation(Args&&... args)
+    SequenceAnimationImpl(Args&&... args)
     {
         fillContainerFromVariadic(std::forward<Args>(args)...);
     }
@@ -37,3 +37,5 @@ protected:
     }
     std::deque<AnimationPointerType> m_AnimationList;
 };
+
+using SequenceAnimation = SequenceAnimationImpl<>;

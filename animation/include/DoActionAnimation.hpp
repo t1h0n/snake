@@ -3,11 +3,11 @@
 #include <cassert>
 
 template <typename DurationType = std::chrono::milliseconds>
-class DoAction : public CAnimation<DurationType>
+class DoActionImpl : public CAnimation<DurationType>
 {
 public:
-    DoAction(const std::function<void()>& callback) : m_StartedCallback{callback} { assert(callback); }
-    DoAction(std::function<void()>&& callback) : m_StartedCallback{std::move(callback)} { assert(m_StartedCallback); }
+    DoActionImpl(const std::function<void()>& callback) : m_StartedCallback{callback} { assert(callback); }
+    DoActionImpl(std::function<void()>&& callback) : m_StartedCallback{std::move(callback)} { assert(m_StartedCallback); }
     void play_impl(DurationType)
     {
         m_StartedCallback();
@@ -17,3 +17,4 @@ public:
 protected:
     std::function<void()> m_StartedCallback;
 };
+using DoActionAnimation = DoActionImpl<>;

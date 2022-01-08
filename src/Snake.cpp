@@ -35,7 +35,7 @@ struct opacitySetter
         obj.setFillColor(change_opacity(obj.getFillColor(), opacity));
     }
 };
-using BodyPieceFadeAnimation = ValueSettingAnimation<sf::RectangleShape, float, opacitySetter>;
+using BodyPieceFadeAnimation = ValueSettingAnimationImpl<sf::RectangleShape, float, opacitySetter>;
 
 bool approximatelyEquals(sf::Vector2f const& left, sf::Vector2f const& right)
 {
@@ -88,9 +88,11 @@ ISnakeState* GameOverSnakeState::update(Snake& snake, float ms)
 {
     auto head = std::shared_ptr<sf::RectangleShape>(&snake.m_BodyPieces.front(), [](auto*) {});
     auto manager = CAnimationManager();
-    const auto id = manager.addAnimation(std::make_unique<GroupAnimation<>>(
+    const auto id = manager.addAnimation(std::make_unique<GroupAnimation>(std::make_unique<SequenceAnimation>(
         std::make_unique<BodyPieceFadeAnimation>(head, 1.0f, 0.0f, std::chrono::milliseconds(2)),
-        std::make_unique<DoAction<>>([]() { std::cout << "works\n"; })));
+        std::make_unique<DoActionAnimation>([]() { std::cout << "works\n"; }),
+        std::make_unique<WaitAnimation>(std::chrono::milliseconds(10)))));
+
     manager.play(std::chrono::milliseconds(10));
     m_Time += ms;
     if (m_Time > UPDATE_TIME / 2.0f)

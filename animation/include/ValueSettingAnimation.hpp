@@ -49,7 +49,7 @@ struct InSine
 };
 struct OutSine
 {
-    float operator()(float t) { return 1.0f - std::sin((t * pi_v) / 2.0f); }
+    float operator()(float t) { return std::sin((t * pi_v) / 2.0f); }
 };
 
 std::function<float(float)> mapEnumToFunctor(EasingType type)
@@ -69,22 +69,23 @@ std::function<float(float)> mapEnumToFunctor(EasingType type)
 }
 
 template <typename Obj, typename ValueType, typename ValueSetter, typename DurationType = std::chrono::milliseconds,
-          typename = std::enable_if_t<std::is_invocable_v<ValueSetter, Obj&, ValueType const&>>>
+          typename = std::enable_if_t<std::is_invocable_v<ValueSetter, Obj&, ValueType const&, ValueType const&, float>>>
 class ValueSettingAnimationImpl : public CAnimation<DurationType>
 {
 public:
     ValueSettingAnimationImpl(const std::shared_ptr<Obj>& obj, ValueType start, ValueType end, DurationType duration,
-                          EasingType type = EasingType::Linear)
-        : m_Object{obj}, m_Start{std::move(start)}, m_End{std::move(end)}, m_CurrentTime{0},
-          m_Duration{duration}, m_TimeTransformer{mapEnumToFunctor(type)}
+                              EasingType type = EasingType::Linear)
+        : m_Object{obj}, m_StartValue{std::move(start)}, m_EndValue{std::move(end)}, m_SwapFactor{0.0f},
+          m_CurrentTime{static_cast<typename DurationType::rep>(0)}, m_Duration{duration}, m_TimeTransformer{mapEnumToFunctor(type)}
     {
+        assert(m_TimeTransformer && m_StartValue != m_EndValue);
     }
     ValueSettingAnimationImpl(const std::shared_ptr<Obj>& obj, ValueType start, ValueType end, DurationType duration,
-                          std::function<float(float)> time_transforemer)
-        : m_Object{obj}, m_Start{std::move(start)}, m_End{std::move(end)}, m_CurrentTime{0},
-          m_Duration{duration}, m_TimeTransformer{std::move(time_transforemer)}
+                              std::function<float(float)> time_transforemer)
+        : m_Object{obj}, m_StartValue{std::move(start)}, m_EndValue{std::move(end)}, m_SwapFactor{0.0f},
+          m_CurrentTime{static_cast<typename DurationType::rep>(0)}, m_Duration{duration}, m_TimeTransformer{std::move(time_transforemer)}
     {
-        assert(m_TimeTransformer);
+        assert(m_TimeTransformer && m_StartValue != m_EndValue);
     }
     virtual void play_impl(DurationType t) override
     {
@@ -93,7 +94,7 @@ public:
         const float scale_factor = [this]() {
                 if (m_CurrentTime < m_Duration)
                 {
-                    const float dt = std::chrono::duration_cast<std::chrono::duration<float, typename DurationType::period>>(m_Duration - m_CurrentTime).count() 
+                    const float dt = std::chrono::duration_cast<std::chrono::duration<float, typename DurationType::period>>(m_CurrentTime).count() 
                                    / std::chrono::duration_cast<std::chrono::duration<float, typename DurationType::period>>(m_Duration).count();
                     return m_TimeTransformer(dt);
                 }
@@ -106,7 +107,7 @@ public:
         // clang-format on
         if (!m_Object.expired())
         {
-            m_ValueSetter(*m_Object.lock(), (m_End - m_Start) * scale_factor);
+            m_ValueSetter(*m_Object.lock(), m_StartValue, m_EndValue, scale_factor);
         }
         else
         {
@@ -116,8 +117,9 @@ public:
 
 protected:
     std::weak_ptr<Obj> m_Object;
-    ValueType m_Start;
-    ValueType m_End;
+    ValueType m_StartValue;
+    ValueType m_EndValue;
+    float m_SwapFactor;
     DurationType m_CurrentTime;
     DurationType m_Duration;
     std::function<float(float)> m_TimeTransformer;

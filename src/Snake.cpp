@@ -1,5 +1,4 @@
 #include "Snake.hpp"
-#include "CAnimationManager.hpp"
 #include "Common.hpp"
 #include "DoActionAnimation.hpp"
 #include "GroupAnimation.hpp"
@@ -8,31 +7,20 @@
 #include "WaitAnimation.hpp"
 #include <cassert>
 #include <iostream>
+#include <thread>
+
 namespace
 {
 struct opacitySetter
 {
     static sf::Color change_opacity(sf::Color color, float opacity)
     {
-        const auto new_opacity = static_cast<std::uint32_t>(opacity * 255.0f);
-        color.a = [new_opacity]() {
-            if (new_opacity >= 0)
-            {
-                if (new_opacity <= 255)
-                    return static_cast<std::uint8_t>(new_opacity);
-                else
-                    return static_cast<std::uint8_t>(255);
-            }
-            else
-            {
-                return static_cast<std::uint8_t>(0);
-            }
-        }();
+        color.a = static_cast<std::uint8_t>(opacity * 255.0f);
         return color;
     }
-    void operator()(sf::RectangleShape& obj, const float& opacity)
+    void operator()(sf::RectangleShape& obj, const float& opacity_start, const float& opacity_end, float scale_factor)
     {
-        obj.setFillColor(change_opacity(obj.getFillColor(), opacity));
+        obj.setFillColor(change_opacity(obj.getFillColor(), opacity_start * (1 - scale_factor) + opacity_end * scale_factor));
     }
 };
 using BodyPieceFadeAnimation = ValueSettingAnimationImpl<sf::RectangleShape, float, opacitySetter>;
@@ -51,125 +39,92 @@ ISnakeState* NormalSnakeState::update(Snake& snake, float ms)
     if (m_CurrentTime >= UPDATE_TIME)
     {
         m_CurrentTime = 0.0f;
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) &&
-            snake.m_PreviousDirection != snake.getOppositeDirection(MoveDirection::Up))
+        if (snake.getGameResult() == GameResult::None)
         {
-            snake.move(MoveDirection::Up);
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) && snake.m_PreviousDirection != snake.getOppositeDirection(MoveDirection::Up))
+            {
+                snake.move(MoveDirection::Up);
+            }
+            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S) &&
+                     snake.m_PreviousDirection != snake.getOppositeDirection(MoveDirection::Down))
+            {
+                snake.move(MoveDirection::Down);
+            }
+            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D) &&
+                     snake.m_PreviousDirection != snake.getOppositeDirection(MoveDirection::Right))
+            {
+                snake.move(MoveDirection::Right);
+            }
+            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) &&
+                     snake.m_PreviousDirection != snake.getOppositeDirection(MoveDirection::Left))
+            {
+                snake.move(MoveDirection::Left);
+            }
+            else
+            {
+                snake.move(snake.m_PreviousDirection);
+            }
         }
-        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S) &&
-                 snake.m_PreviousDirection != snake.getOppositeDirection(MoveDirection::Down))
+        else if (snake.getGameResult() == GameResult::Loss)
         {
-            snake.move(MoveDirection::Down);
-        }
-        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D) &&
-                 snake.m_PreviousDirection != snake.getOppositeDirection(MoveDirection::Right))
-        {
-            snake.move(MoveDirection::Right);
-        }
-        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) &&
-                 snake.m_PreviousDirection != snake.getOppositeDirection(MoveDirection::Left))
-        {
-            snake.move(MoveDirection::Left);
-        }
-        else
-        {
-            snake.move(snake.m_PreviousDirection);
-        }
-
-        if (snake.getGameResult() == GameResult::Loss)
-        {
+            snake.m_GameResult = GameResult::Loss;
             return &snake.m_GameOverSnakeState;
         }
     }
     return &snake.m_NormalSnakeState;
 }
 
-ISnakeState* GameOverSnakeState::update(Snake& snake, float ms)
+ISnakeState* GameOverSnakeState::update(Snake& snake, float)
 {
-    auto head = std::shared_ptr<sf::RectangleShape>(&snake.m_BodyPieces.front(), [](auto*) {});
-    auto manager = CAnimationManager();
-    const auto id = manager.addAnimation(std::make_unique<GroupAnimation>(std::make_unique<SequenceAnimation>(
-        std::make_unique<BodyPieceFadeAnimation>(head, 1.0f, 0.0f, std::chrono::milliseconds(2)),
-        std::make_unique<DoActionAnimation>([]() { std::cout << "works\n"; }),
-        std::make_unique<WaitAnimation>(std::chrono::milliseconds(10)))));
-
-    manager.play(std::chrono::milliseconds(10));
-    m_Time += ms;
-    if (m_Time > UPDATE_TIME / 2.0f)
+    if (!m_Initialized)
     {
-        m_Time = 0.0f;
-        for (auto& snake_piece : snake.m_BodyPieces)
+        m_Initialized = true;
+        m_AnimationFinished = false;
+        std::deque<std::unique_ptr<IAnimation>> fade_out_animation, fade_in_animation_short, fade_out_animation_short;
+        for (const auto& body_piece : snake.m_BodyPieces)
         {
-            const auto change_opacity = [](sf::Color color, float opacity) {
-                const auto new_opacity = static_cast<std::uint32_t>(opacity * 255.0f);
-                color.a = [new_opacity]() {
-                    if (new_opacity >= 0)
-                    {
-                        if (new_opacity <= 255)
-                            return static_cast<std::uint8_t>(new_opacity);
-                        else
-                            return static_cast<std::uint8_t>(255);
-                    }
-                    else
-                    {
-                        return static_cast<std::uint8_t>(0);
-                    }
-                }();
-                return color;
-            };
-            snake_piece.setFillColor(change_opacity(snake_piece.getFillColor(), 1.0f));
+            fade_out_animation.push_front(
+                std::make_unique<BodyPieceFadeAnimation>(body_piece, 1.0f, 0.2f, std::chrono::milliseconds(200), EasingType::Linear));
+            fade_in_animation_short.push_front(
+                std::make_unique<BodyPieceFadeAnimation>(body_piece, 0.2f, 1.0f, std::chrono::milliseconds(200), EasingType::OutSine));
+            fade_out_animation_short.push_front(
+                std::make_unique<BodyPieceFadeAnimation>(body_piece, 1.0f, 0.0f, std::chrono::milliseconds(1500), EasingType::InSine));
         }
-        snake.onInit();
+        auto fade_out_fade_in = std::make_unique<SequenceAnimation>();
+        fade_out_fade_in->addAnimationsFromContainer(std::move(fade_out_animation));
+        fade_out_fade_in->addAnimations(std::make_unique<WaitAnimation>(std::chrono::seconds(1)));
+        fade_out_fade_in->addAnimationsFromContainer(std::move(fade_in_animation_short));
+
+        auto fade_out_short_sequence = std::make_unique<GroupAnimation>();
+        fade_out_short_sequence->addAnimationsFromContainer(std::move(fade_out_animation_short));
+        fade_out_fade_in->addAnimations(std::make_unique<WaitAnimation>(std::chrono::milliseconds(200)), std::move(fade_out_short_sequence),
+                                        std::make_unique<WaitAnimation>(std::chrono::milliseconds(200)));
+        fade_out_fade_in->setFinishedCallback([this, &snake]() {
+            m_AnimationFinished = true;
+            snake.onInit();
+        });
+        m_AnimationId = snake.m_AnimationManager->addAnimation(std::move(fade_out_fade_in));
+    }
+    if (m_AnimationFinished)
+    {
+        m_Initialized = false;
         return &snake.m_NormalSnakeState;
     }
-    if (m_FadeOut)
-    {
-        m_CurrentOpacity -= ms / 1e3f;
-        if (m_CurrentOpacity < 0.3f)
-        {
-            m_CurrentOpacity = 0.3f;
-            m_FadeOut = false;
-        }
-    }
-    else
-    {
-        m_CurrentOpacity += ms / 1e3f;
-        if (m_CurrentOpacity >= 1.0f)
-        {
-            m_CurrentOpacity = 1.0f;
-            m_FadeOut = true;
-        }
-    }
-    for (auto& snake_piece : snake.m_BodyPieces)
-    {
-        const auto change_opacity = [](sf::Color color, float opacity) {
-            const auto new_opacity = static_cast<std::uint32_t>(opacity * 255.0f);
-            color.a = [new_opacity]() {
-                if (new_opacity >= 0)
-                {
-                    if (new_opacity <= 255)
-                        return static_cast<std::uint8_t>(new_opacity);
-                    else
-                        return static_cast<std::uint8_t>(255);
-                }
-                else
-                {
-                    return static_cast<std::uint8_t>(0);
-                }
-            }();
-            return color;
-        };
-        snake_piece.setFillColor(change_opacity(snake_piece.getFillColor(), m_CurrentOpacity));
-    }
+
     return &snake.m_GameOverSnakeState;
 }
 
 Snake::Snake()
     : m_Head{nullptr}, m_Tail{nullptr}, m_PreviousDirection{MoveDirection::Up}, m_GameResult{GameResult::None},
-      m_Food(*this), m_State{nullptr}
+      m_Food(*this), m_State{nullptr}, m_AnimationManager{nullptr}
 {
 }
 
+void Snake::setAnimationManager(IAnimationManagerImpl<>* animation_manager)
+{
+    assert(animation_manager);
+    m_AnimationManager = animation_manager;
+}
 void Snake::onInit()
 {
     m_BodyPieces.clear();
@@ -186,29 +141,29 @@ void Snake::setBodyPieces(std::deque<sf::Vector2<std::int32_t>> const& initial_p
     assert(initial_position.size() > 2);
     for (auto const& pos : initial_position)
     {
-        auto body_part = sf::RectangleShape(block_metrics);
-        body_part.setPosition({pos.x * block_metrics.x, pos.y * block_metrics.y});
-        body_part.setFillColor(body_color);
+        auto body_part = std::make_shared<sf::RectangleShape>(block_metrics);
+        body_part->setPosition({pos.x * block_metrics.x, pos.y * block_metrics.y});
+        body_part->setFillColor(body_color);
         m_BodyPieces.push_back(std::move(body_part));
     }
-    m_BodyPieces.front().setFillColor(head_color);
-    m_BodyPieces.back().setFillColor(tail_color);
-    m_Head = &m_BodyPieces.front();
-    m_Tail = &m_BodyPieces.back();
+    m_BodyPieces.front()->setFillColor(head_color);
+    m_BodyPieces.back()->setFillColor(tail_color);
+    m_Head = m_BodyPieces.front().get();
+    m_Tail = m_BodyPieces.back().get();
 }
 void Snake::move(MoveDirection direction)
 {
     const sf::Vector2f new_head_pos = calculateNewHeadPosition(direction);
 
-    m_BodyPieces.emplace_front(block_metrics);
+    m_BodyPieces.emplace_front(std::make_shared<sf::RectangleShape>(block_metrics));
     m_Head->setFillColor(body_color);
-    m_Head = &m_BodyPieces.front();
+    m_Head = m_BodyPieces.front().get();
     m_Head->setFillColor(head_color);
     m_Head->setPosition(new_head_pos);
     if (!approximatelyEquals(m_Food.getPosition(), new_head_pos))
     {
         m_BodyPieces.pop_back();
-        m_Tail = &m_BodyPieces.back();
+        m_Tail = m_BodyPieces.back().get();
         m_Tail->setFillColor(tail_color);
     }
     else
@@ -232,7 +187,7 @@ GameResult Snake::getGameResult() const
 
     for (; beg != end; ++beg)
     {
-        if (m_Head->getPosition() == beg->getPosition())
+        if (m_Head->getPosition() == (*beg)->getPosition())
         {
             return GameResult::Loss;
         }
@@ -287,8 +242,8 @@ sf::Vector2f Snake::calculateNewHeadPosition(MoveDirection direction) const
 }
 MoveDirection Snake::getOppositeDirection(MoveDirection direction) const
 {
-    static constexpr std::array<MoveDirection, 4UL> opposites{MoveDirection::Down, MoveDirection::Up,
-                                                              MoveDirection::Right, MoveDirection::Left};
+    static constexpr std::array<MoveDirection, 4UL> opposites{MoveDirection::Down, MoveDirection::Up, MoveDirection::Right,
+                                                              MoveDirection::Left};
     // using internal layout of enum
     return opposites.at(static_cast<std::size_t>(direction));
 }
@@ -297,14 +252,14 @@ void Snake::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
     struct reverse
     {
-        reverse(const std::deque<sf::RectangleShape>* obj) : obj{obj} {}
+        reverse(const std::deque<std::shared_ptr<sf::RectangleShape>>* obj) : obj{obj} {}
         auto begin() { return obj->crbegin(); }
         auto end() { return obj->crend(); }
-        std::deque<sf::RectangleShape> const* obj;
+        std::deque<std::shared_ptr<sf::RectangleShape>> const* obj;
     };
     target.draw(m_Food, states);
     for (auto const& piece : reverse{&m_BodyPieces})
     {
-        target.draw(piece, states);
+        target.draw(*piece, states);
     }
 }

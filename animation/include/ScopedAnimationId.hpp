@@ -4,55 +4,89 @@
 #include <memory>
 
 template <typename DurationType, typename AnimationPointerType>
-class IAnimationManager;
+class IAnimationManagerImpl;
 
-template <typename DurationType = std::chrono::milliseconds,
-          typename AnimationPointerType = std::unique_ptr<IAnimation<DurationType>>>
-class ScopedAnimationId
+template <typename DurationType = std::chrono::milliseconds, typename AnimationPointerType = std::unique_ptr<IAnimationImpl<DurationType>>>
+class ScopedAnimationIdImpl
 {
 public:
-    ScopedAnimationId(AnimationId id, IAnimationManager<DurationType, AnimationPointerType>* manager);
-    ScopedAnimationId(const ScopedAnimationId& other);
-    ScopedAnimationId& operator=(const ScopedAnimationId& other);
-    ~ScopedAnimationId();
+    ScopedAnimationIdImpl() : m_AnimationId{0u}, m_Manager{nullptr} {}
+    ScopedAnimationIdImpl(AnimationId id, IAnimationManagerImpl<DurationType, AnimationPointerType>* manager);
+    ScopedAnimationIdImpl(ScopedAnimationIdImpl& other);
+    ScopedAnimationIdImpl(ScopedAnimationIdImpl&& other);
+    ScopedAnimationIdImpl& operator=(ScopedAnimationIdImpl& other);
+    ScopedAnimationIdImpl& operator=(ScopedAnimationIdImpl&& other);
+    ~ScopedAnimationIdImpl();
     operator AnimationId();
 
 private:
     AnimationId m_AnimationId;
-    IAnimationManager<DurationType, AnimationPointerType>* m_Manager;
+    IAnimationManagerImpl<DurationType, AnimationPointerType>* m_Manager;
 };
 
 template <typename DurationType, typename AnimationPointerType>
-inline ScopedAnimationId<DurationType, AnimationPointerType>::ScopedAnimationId(
-    AnimationId id, IAnimationManager<DurationType, AnimationPointerType>* manager)
+inline ScopedAnimationIdImpl<DurationType, AnimationPointerType>::ScopedAnimationIdImpl(
+    AnimationId id, IAnimationManagerImpl<DurationType, AnimationPointerType>* manager)
     : m_AnimationId{id}, m_Manager{manager}
 {
     assert(manager != nullptr);
 }
 template <typename DurationType, typename AnimationPointerType>
-inline ScopedAnimationId<DurationType, AnimationPointerType>::ScopedAnimationId(const ScopedAnimationId& other)
+inline ScopedAnimationIdImpl<DurationType, AnimationPointerType>::ScopedAnimationIdImpl(ScopedAnimationIdImpl& other)
     : m_AnimationId{other.m_AnimationId}, m_Manager{other.m_Manager}
 {
+    other.m_Manager = nullptr;
 }
 template <typename DurationType, typename AnimationPointerType>
-inline ScopedAnimationId<DurationType, AnimationPointerType>& ScopedAnimationId<DurationType, AnimationPointerType>::operator=(
-    const ScopedAnimationId<DurationType, AnimationPointerType>& other)
+inline ScopedAnimationIdImpl<DurationType, AnimationPointerType>::ScopedAnimationIdImpl(ScopedAnimationIdImpl&& other)
+    : m_AnimationId{other.m_AnimationId}, m_Manager{other.m_Manager}
+{
+    other.m_Manager = nullptr;
+}
+template <typename DurationType, typename AnimationPointerType>
+inline ScopedAnimationIdImpl<DurationType, AnimationPointerType>&
+ScopedAnimationIdImpl<DurationType, AnimationPointerType>::operator=(ScopedAnimationIdImpl<DurationType, AnimationPointerType>& other)
 {
     if (this != &other)
     {
-        m_Manager->cancelAnimationById(m_AnimationId);
+        if (m_Manager)
+        {
+            m_Manager->cancelAnimationById(m_AnimationId);
+        }
         m_Manager = other.m_Manager;
         m_AnimationId = other.m_AnimationId;
+        other.m_Manager = nullptr;
     }
     return *this;
 }
 template <typename DurationType, typename AnimationPointerType>
-inline ScopedAnimationId<DurationType, AnimationPointerType>::~ScopedAnimationId()
+inline ScopedAnimationIdImpl<DurationType, AnimationPointerType>&
+ScopedAnimationIdImpl<DurationType, AnimationPointerType>::operator=(ScopedAnimationIdImpl<DurationType, AnimationPointerType>&& other)
 {
-    m_Manager->cancelAnimationById(m_AnimationId);
+    if (this != &other)
+    {
+        if (m_Manager)
+        {
+            m_Manager->cancelAnimationById(m_AnimationId);
+        }
+        m_Manager = other.m_Manager;
+        m_AnimationId = other.m_AnimationId;
+        other.m_Manager = nullptr;
+    }
+    return *this;
 }
 template <typename DurationType, typename AnimationPointerType>
-inline ScopedAnimationId<DurationType, AnimationPointerType>::operator AnimationId()
+inline ScopedAnimationIdImpl<DurationType, AnimationPointerType>::~ScopedAnimationIdImpl()
+{
+    if (m_Manager)
+    {
+        m_Manager->cancelAnimationById(m_AnimationId);
+    }
+}
+template <typename DurationType, typename AnimationPointerType>
+inline ScopedAnimationIdImpl<DurationType, AnimationPointerType>::operator AnimationId()
 {
     return m_AnimationId;
 }
+
+using ScopedAnimationId = ScopedAnimationIdImpl<>;

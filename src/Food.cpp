@@ -28,7 +28,7 @@ std::optional<sf::Vector2f> Food::FoodGenerator::generatePosition()
             bool found = false;
             for (auto const& body_piece : snake.m_BodyPieces)
             {
-                if (approximatelyEquals(body_piece.getPosition(), possible_position))
+                if (approximatelyEquals(body_piece->getPosition(), possible_position))
                 {
                     found = true;
                     break;

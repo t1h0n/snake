@@ -6,7 +6,7 @@
 using AnimationId = std::uint32_t;
 
 template <typename DurationType = std::chrono::milliseconds>
-class IAnimation
+class IAnimationImpl
 {
 public:
     virtual void play(DurationType t) = 0;
@@ -14,8 +14,8 @@ public:
     virtual bool isFinished() const = 0;
     virtual void setFinishedCallback(std::function<void()> callback) = 0;
 
-    IAnimation(const IAnimation&) = delete;
-    void operator=(const IAnimation&) = delete;
-    IAnimation() = default;
-    virtual ~IAnimation() = default;
+    IAnimationImpl() = default;
+    virtual ~IAnimationImpl() = default;
 };
+
+using IAnimation = IAnimationImpl<>;

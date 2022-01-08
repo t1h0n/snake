@@ -1,10 +1,12 @@
 #pragma once
 #include "Food.hpp"
-
+#include "IAnimationManager.hpp"
+#include "ScopedAnimationId.hpp"
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <cstdint>
 #include <deque>
+#include <memory>
 
 class Snake;
 
@@ -32,6 +34,8 @@ class NormalSnakeState : public ISnakeState
 {
 public:
     virtual ISnakeState* update(Snake& snake, float ms) override;
+
+private:
     static constexpr float UPDATE_TIME = 100.0f;
     float m_CurrentTime = 0.0f;
 };
@@ -40,10 +44,11 @@ class GameOverSnakeState : public ISnakeState
 {
 public:
     virtual ISnakeState* update(Snake& snake, float ms) override;
-    static constexpr float UPDATE_TIME = 1e4f;
-    float m_CurrentOpacity = 1.0f;
-    float m_Time = 0.0f;
-    bool m_FadeOut = true;
+
+private:
+    ScopedAnimationId m_AnimationId;
+    bool m_Initialized{false};
+    bool m_AnimationFinished{false};
 };
 
 class Snake : public sf::Drawable
@@ -57,11 +62,12 @@ public:
     void setBodyPieces(std::deque<sf::Vector2<std::int32_t>> const& initial_position);
     void move(MoveDirection direction);
     GameResult getGameResult() const;
-    sf::Vector2f calculateNewHeadPosition(MoveDirection direction)const ;
-    MoveDirection getOppositeDirection(MoveDirection direction)const ;
+    sf::Vector2f calculateNewHeadPosition(MoveDirection direction) const;
+    MoveDirection getOppositeDirection(MoveDirection direction) const;
+    void setAnimationManager(IAnimationManager* manager);
 
 private:
-    std::deque<sf::RectangleShape> m_BodyPieces;
+    std::deque<std::shared_ptr<sf::RectangleShape>> m_BodyPieces;
     sf::RectangleShape* m_Head;
     sf::RectangleShape* m_Tail;
     MoveDirection m_PreviousDirection;
@@ -71,6 +77,7 @@ private:
 
     NormalSnakeState m_NormalSnakeState;
     GameOverSnakeState m_GameOverSnakeState;
+    IAnimationManager* m_AnimationManager;
     inline static auto const head_color = sf::Color{199U, 177U, 152U};
     inline static auto const body_color = sf::Color{223U, 211U, 195U};
     inline static auto const tail_color = sf::Color{240U, 236U, 227U};

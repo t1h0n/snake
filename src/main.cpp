@@ -1,3 +1,4 @@
+#include "CAnimationManager.hpp"
 #include "Common.hpp"
 #include "Food.hpp"
 #include "Snake.hpp"
@@ -22,16 +23,17 @@ public:
             sf::Event event;
             while (m_Window->pollEvent(event))
             {
-                processInput(event);
+                processWindowInput(event);
             }
             update(elapsed_time);
+            m_AnimatinManager.play(std::chrono::duration_cast<std::chrono::milliseconds>(current_time - start_time));
             render();
             start_time = current_time;
         }
     }
 
 private:
-    void processInput(sf::Event event)
+    void processWindowInput(sf::Event event)
     {
         if (event.type == sf::Event::Closed)
         {
@@ -40,10 +42,11 @@ private:
     }
     void init()
     {
-        m_Window = std::make_unique<sf::RenderWindow>(sf::VideoMode(board_metrics.width, board_metrics.height),
-                                                      sf::String{"Snake"}, sf::Style::Titlebar | sf::Style::Close);
-        m_Window->setFramerateLimit(24);
+        m_Window = std::make_unique<sf::RenderWindow>(sf::VideoMode(board_metrics.width, board_metrics.height), sf::String{"Snake"},
+                                                      sf::Style::Titlebar | sf::Style::Close);
+        m_Window->setFramerateLimit(60);
         m_Snake.onInit();
+        m_Snake.setAnimationManager(&m_AnimatinManager);
     }
     void update(float ms) { m_Snake.onUpdate(ms); }
     void render()
@@ -56,6 +59,7 @@ private:
 private:
     std::unique_ptr<sf::RenderWindow> m_Window;
     Snake m_Snake;
+    CAnimationManager m_AnimatinManager;
 };
 
 int main()

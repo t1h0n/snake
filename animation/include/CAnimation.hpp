@@ -2,7 +2,7 @@
 #include "IAnimation.hpp"
 
 template <typename DurationType = std::chrono::milliseconds>
-class CAnimation : public IAnimation<DurationType>
+class CAnimation : public IAnimationImpl<DurationType>
 {
 public:
     CAnimation() : m_Finished{false} {}
@@ -21,6 +21,7 @@ public:
     }
     void play(DurationType t) override
     {
+        assert(t.count() > static_cast<typename DurationType::rep>(0));
         if (!m_Finished)
         {
             play_impl(t);

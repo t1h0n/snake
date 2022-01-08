@@ -3,33 +3,35 @@
 #include <deque>
 #include <memory>
 
-class GroupAnimation : public CAnimation
+template <typename DurationType = std::chrono::milliseconds,
+          typename AnimationPointerType = std::unique_ptr<IAnimation<DurationType>>>
+class GroupAnimation : public CAnimation<DurationType>
 {
 public:
     template <typename... Args>
-    GroupAnimation(std::unique_ptr<Args>... args)
+    GroupAnimation(Args&&... args)
     {
-        fillContainerFromVariadic(std::move(args)...);
+        fillContainerFromVariadic(std::forward<Args>(args)...);
     }
-    virtual void play_impl(std::chrono::milliseconds ms) override
+    virtual void play_impl(DurationType ms) override
     {
-        m_Finished = true;
+        CAnimation<DurationType>::m_Finished = true;
         for (auto& animation : m_AnimationList)
         {
             animation->play(ms);
-            m_Finished = m_Finished && animation->isFinished();
+            CAnimation<DurationType>::m_Finished = CAnimation<DurationType>::m_Finished && animation->isFinished();
         }
     }
 
 protected:
     template <typename T, typename... Args>
-    void fillContainerFromVariadic(std::unique_ptr<T> first, std::unique_ptr<Args>... args)
+    void fillContainerFromVariadic(T&& first, Args&&... args)
     {
         m_AnimationList.push_back(std::move(first));
         if constexpr (sizeof...(Args) > 0)
         {
-            fillContainerFromVariadic(std::move(Args)...);
+            fillContainerFromVariadic(std::forward<Args>(args)...);
         }
     }
-    std::deque<std::unique_ptr<IAnimation>> m_AnimationList;
+    std::deque<AnimationPointerType> m_AnimationList;
 };

@@ -1,18 +1,19 @@
 #pragma once
 #include "CAnimation.hpp"
 
-class WaitAnimation : public CAnimation
+template <typename DurationType = std::chrono::milliseconds>
+class WaitAnimation : public CAnimation<DurationType>
 {
 public:
-    WaitAnimation(std::chrono::milliseconds duration) : m_Duration{duration} {}
+    WaitAnimation(DurationType duration) : m_Duration{duration} {}
 
-    void play_impl(std::chrono::milliseconds ms)
+    void play_impl(DurationType ms)
     {
         m_CurrentTime += ms;
-        m_Finished = m_CurrentTime >= m_Duration;
+        CAnimation<DurationType>::m_Finished = m_CurrentTime >= m_Duration;
     }
 
 protected:
-    std::chrono::milliseconds m_Duration;
-    std::chrono::milliseconds m_CurrentTime;
+    DurationType m_Duration;
+    DurationType m_CurrentTime;
 };

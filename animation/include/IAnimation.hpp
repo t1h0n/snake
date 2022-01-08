@@ -5,10 +5,11 @@
 
 using AnimationId = std::uint32_t;
 
+template <typename DurationType = std::chrono::milliseconds>
 class IAnimation
 {
 public:
-    virtual void play(std::chrono::milliseconds ms) = 0;
+    virtual void play(DurationType t) = 0;
     virtual void invokeFinishedCallback() const = 0;
     virtual bool isFinished() const = 0;
     virtual void setFinishedCallback(std::function<void()> callback) = 0;

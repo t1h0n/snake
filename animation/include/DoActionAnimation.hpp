@@ -1,6 +1,5 @@
 #pragma once
 #include "CAnimation.hpp"
-#include <cassert>
 
 template <typename DurationType = std::chrono::milliseconds>
 class DoActionImpl : public CAnimation<DurationType>

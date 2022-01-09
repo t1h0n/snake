@@ -1,12 +1,10 @@
 #pragma once
 #include "CAnimation.hpp"
-#include <algorithm>
 #include <deque>
 #include <iterator>
 #include <memory>
 
-template <typename DurationType = std::chrono::milliseconds,
-          typename AnimationPointerType = std::unique_ptr<IAnimationImpl<DurationType>>>
+template <typename DurationType = std::chrono::milliseconds, typename AnimationPointerType = std::unique_ptr<IAnimationImpl<DurationType>>>
 class SequenceAnimationImpl : public CAnimation<DurationType>
 {
 public:
@@ -20,8 +18,7 @@ public:
     void addAnimationsFromContainer(ContainerType&& animation_container)
     {
         assert(!animation_container.empty());
-        for (std::move_iterator start{animation_container.begin()}, end{animation_container.end()}; start != end;
-             ++start)
+        for (std::move_iterator start{animation_container.begin()}, end{animation_container.end()}; start != end; ++start)
         {
             assert(*start);
             m_AnimationList.push_back(*start);
@@ -34,13 +31,20 @@ public:
     }
     virtual void play_impl(DurationType t) override
     {
-        auto& top_animation = m_AnimationList.front();
-        top_animation->play(t);
-        if (top_animation->isFinished())
+        if (m_AnimationList.cbegin() != m_AnimationList.cend())
         {
-            top_animation->invokeFinishedCallback();
-            m_AnimationList.pop_front();
-            CAnimation<DurationType>::m_Finished = m_AnimationList.empty();
+            auto& top_animation = m_AnimationList.front();
+            top_animation->play(t);
+            if (top_animation->isFinished())
+            {
+                top_animation->invokeFinishedCallback();
+                m_AnimationList.pop_front();
+                CAnimation<DurationType>::m_Finished = m_AnimationList.empty();
+            }
+        }
+        else
+        {
+            CAnimation<DurationType>::m_Finished = true;
         }
     }
 

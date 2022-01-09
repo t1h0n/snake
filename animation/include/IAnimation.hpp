@@ -8,6 +8,9 @@ using AnimationId = std::uint32_t;
 template <typename DurationType = std::chrono::milliseconds>
 class IAnimationImpl
 {
+protected:
+    static constexpr auto ZERO_DURATION = DurationType{static_cast<typename DurationType::rep>(0)};
+
 public:
     virtual void play(DurationType t) = 0;
     virtual void invokeFinishedCallback() const = 0;

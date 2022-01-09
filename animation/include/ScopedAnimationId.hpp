@@ -10,7 +10,7 @@ template <typename DurationType = std::chrono::milliseconds, typename AnimationP
 class ScopedAnimationIdImpl
 {
 public:
-    ScopedAnimationIdImpl() : m_AnimationId{static_cast<typename DurationType::rep>(0)}, m_Manager{nullptr} {}
+    ScopedAnimationIdImpl() : m_AnimationId{static_cast<AnimationId>(0)}, m_Manager{nullptr} {}
     ScopedAnimationIdImpl(AnimationId id, IAnimationManagerImpl<DurationType, AnimationPointerType>* manager);
     ScopedAnimationIdImpl(ScopedAnimationIdImpl& other);
     ScopedAnimationIdImpl(ScopedAnimationIdImpl&& other);
@@ -47,32 +47,26 @@ template <typename DurationType, typename AnimationPointerType>
 inline ScopedAnimationIdImpl<DurationType, AnimationPointerType>&
 ScopedAnimationIdImpl<DurationType, AnimationPointerType>::operator=(ScopedAnimationIdImpl<DurationType, AnimationPointerType>& other)
 {
-    if (this != &other)
+    if (m_Manager)
     {
-        if (m_Manager)
-        {
-            m_Manager->cancelAnimationById(m_AnimationId);
-        }
-        m_Manager = other.m_Manager;
-        m_AnimationId = other.m_AnimationId;
-        other.m_Manager = nullptr;
+        m_Manager->cancelAnimationById(m_AnimationId);
     }
+    m_Manager = other.m_Manager;
+    m_AnimationId = other.m_AnimationId;
+    other.m_Manager = nullptr;
     return *this;
 }
 template <typename DurationType, typename AnimationPointerType>
 inline ScopedAnimationIdImpl<DurationType, AnimationPointerType>&
 ScopedAnimationIdImpl<DurationType, AnimationPointerType>::operator=(ScopedAnimationIdImpl<DurationType, AnimationPointerType>&& other)
 {
-    if (this != &other)
+    if (m_Manager)
     {
-        if (m_Manager)
-        {
-            m_Manager->cancelAnimationById(m_AnimationId);
-        }
-        m_Manager = other.m_Manager;
-        m_AnimationId = other.m_AnimationId;
-        other.m_Manager = nullptr;
+        m_Manager->cancelAnimationById(m_AnimationId);
     }
+    m_Manager = other.m_Manager;
+    m_AnimationId = other.m_AnimationId;
+    other.m_Manager = nullptr;
     return *this;
 }
 template <typename DurationType, typename AnimationPointerType>

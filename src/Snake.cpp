@@ -84,12 +84,13 @@ ISnakeState* GameOverSnakeState::update(Snake& snake, float /*ms*/)
         std::deque<std::unique_ptr<IAnimation>> fade_out_animation;
         std::deque<std::unique_ptr<IAnimation>> fade_in_animation_short;
         std::deque<std::unique_ptr<IAnimation>> fade_out_animation_short;
+        const std::int64_t duration = 300L / static_cast<int>(snake.m_BodyPieces.size());
         for (const auto& body_piece : snake.m_BodyPieces)
         {
             fade_out_animation.push_front(
-                std::make_unique<BodyPieceFadeAnimation>(body_piece, 1.0F, 0.2F, std::chrono::milliseconds(200), EasingType::Linear));
+                std::make_unique<BodyPieceFadeAnimation>(body_piece, 1.0F, 0.2F, std::chrono::milliseconds(duration), EasingType::Linear));
             fade_in_animation_short.push_front(
-                std::make_unique<BodyPieceFadeAnimation>(body_piece, 0.2F, 1.0F, std::chrono::milliseconds(200), EasingType::OutSine));
+                std::make_unique<BodyPieceFadeAnimation>(body_piece, 0.2F, 1.0F, std::chrono::milliseconds(duration), EasingType::OutSine));
             fade_out_animation_short.push_front(
                 std::make_unique<BodyPieceFadeAnimation>(body_piece, 1.0F, 0.0F, std::chrono::milliseconds(1500), EasingType::InSine));
         }

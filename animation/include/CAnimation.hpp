@@ -1,5 +1,6 @@
 #pragma once
 #include "IAnimation.hpp"
+#include <cassert>
 
 template <typename DurationType = std::chrono::milliseconds>
 class CAnimation : public IAnimationImpl<DurationType>
@@ -21,7 +22,7 @@ public:
     }
     virtual void play(DurationType t) override
     {
-        assert(t.count() > static_cast<typename DurationType::rep>(0));
+        assert(t >= IAnimationImpl<DurationType>::ZERO_DURATION);
         if (!m_Finished)
         {
             play_impl(t);

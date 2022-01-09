@@ -1,7 +1,6 @@
 #pragma once
 #include "IAnimation.hpp"
 #include "ScopedAnimationId.hpp"
-#include <memory>
 
 template <typename DurationType = std::chrono::milliseconds, typename AnimationPointerType = std::unique_ptr<IAnimationImpl<DurationType>>>
 class IAnimationManagerImpl

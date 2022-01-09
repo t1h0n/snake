@@ -10,10 +10,10 @@ class CAnimationManagerImpl : public IAnimationManagerImpl<DurationType, Animati
 {
 public:
     CAnimationManagerImpl() = default;
-    void cancelAnimationById(AnimationId id) override;
-    ScopedAnimationIdImpl<DurationType, AnimationPointerType> addAnimation(AnimationPointerType animation) override;
-    AnimationId addAnimationRawId(AnimationPointerType animation) override;
-    void play(DurationType t) override;
+    virtual void cancelAnimationById(AnimationId id) override;
+    [[nodiscard]] virtual ScopedAnimationIdImpl<DurationType, AnimationPointerType> addAnimation(AnimationPointerType animation) override;
+    virtual AnimationId addAnimationRawId(AnimationPointerType animation) override;
+    virtual void play(DurationType t) override;
 
     CAnimationManagerImpl(const CAnimationManagerImpl&) = delete;
     void operator=(const CAnimationManagerImpl&) = delete;
@@ -57,11 +57,11 @@ inline AnimationId CAnimationManagerImpl<DurationType, AnimationPointerType>::ad
     return m_AnimationList.back().id;
 }
 template <typename DurationType, typename AnimationPointerType>
-inline void CAnimationManagerImpl<DurationType, AnimationPointerType>::play(DurationType ms)
+inline void CAnimationManagerImpl<DurationType, AnimationPointerType>::play(DurationType t)
 {
     for (auto& animation_with_id : m_AnimationList)
     {
-        animation_with_id.ptr->play(ms);
+        animation_with_id.ptr->play(t);
     }
     const auto new_end =
         std::remove_if(m_AnimationList.begin(), m_AnimationList.end(),

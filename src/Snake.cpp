@@ -15,7 +15,8 @@ struct opacitySetter
 {
     static sf::Color change_opacity(sf::Color color, float opacity)
     {
-        color.a = static_cast<std::uint8_t>(opacity * 255.0f);
+        assert(opacity >= 0.0f && opacity <= 255.0f);
+        color.a = static_cast<std::uint8_t>(opacity * 255.0F);
         return color;
     }
     void operator()(sf::RectangleShape& obj, const float& opacity_start, const float& opacity_end, float scale_factor)
@@ -27,7 +28,7 @@ using BodyPieceFadeAnimation = ValueSettingAnimationImpl<sf::RectangleShape, flo
 
 bool approximatelyEquals(sf::Vector2f const& left, sf::Vector2f const& right)
 {
-    static auto constexpr PRECISION = 0.005f;
+    static auto constexpr PRECISION = 0.005F;
     const auto result = left - right;
     return std::abs(result.x) <= PRECISION && std::abs(result.y) <= PRECISION;
 }
@@ -38,25 +39,25 @@ ISnakeState* NormalSnakeState::update(Snake& snake, float ms)
     m_CurrentTime += ms;
     if (m_CurrentTime >= UPDATE_TIME)
     {
-        m_CurrentTime = 0.0f;
+        m_CurrentTime = 0.0F;
         if (snake.getGameResult() == GameResult::None)
         {
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) && snake.m_PreviousDirection != snake.getOppositeDirection(MoveDirection::Up))
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) && snake.m_PreviousDirection != Snake::getOppositeDirection(MoveDirection::Up))
             {
                 snake.move(MoveDirection::Up);
             }
             else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S) &&
-                     snake.m_PreviousDirection != snake.getOppositeDirection(MoveDirection::Down))
+                     snake.m_PreviousDirection != Snake::getOppositeDirection(MoveDirection::Down))
             {
                 snake.move(MoveDirection::Down);
             }
             else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D) &&
-                     snake.m_PreviousDirection != snake.getOppositeDirection(MoveDirection::Right))
+                     snake.m_PreviousDirection != Snake::getOppositeDirection(MoveDirection::Right))
             {
                 snake.move(MoveDirection::Right);
             }
             else if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) &&
-                     snake.m_PreviousDirection != snake.getOppositeDirection(MoveDirection::Left))
+                     snake.m_PreviousDirection != Snake::getOppositeDirection(MoveDirection::Left))
             {
                 snake.move(MoveDirection::Left);
             }
@@ -74,21 +75,23 @@ ISnakeState* NormalSnakeState::update(Snake& snake, float ms)
     return &snake.m_NormalSnakeState;
 }
 
-ISnakeState* GameOverSnakeState::update(Snake& snake, float)
+ISnakeState* GameOverSnakeState::update(Snake& snake, float /*ms*/)
 {
     if (!m_Initialized)
     {
         m_Initialized = true;
         m_AnimationFinished = false;
-        std::deque<std::unique_ptr<IAnimation>> fade_out_animation, fade_in_animation_short, fade_out_animation_short;
+        std::deque<std::unique_ptr<IAnimation>> fade_out_animation;
+        std::deque<std::unique_ptr<IAnimation>> fade_in_animation_short;
+        std::deque<std::unique_ptr<IAnimation>> fade_out_animation_short;
         for (const auto& body_piece : snake.m_BodyPieces)
         {
             fade_out_animation.push_front(
-                std::make_unique<BodyPieceFadeAnimation>(body_piece, 1.0f, 0.2f, std::chrono::milliseconds(200), EasingType::Linear));
+                std::make_unique<BodyPieceFadeAnimation>(body_piece, 1.0F, 0.2F, std::chrono::milliseconds(200), EasingType::Linear));
             fade_in_animation_short.push_front(
-                std::make_unique<BodyPieceFadeAnimation>(body_piece, 0.2f, 1.0f, std::chrono::milliseconds(200), EasingType::OutSine));
+                std::make_unique<BodyPieceFadeAnimation>(body_piece, 0.2F, 1.0F, std::chrono::milliseconds(200), EasingType::OutSine));
             fade_out_animation_short.push_front(
-                std::make_unique<BodyPieceFadeAnimation>(body_piece, 1.0f, 0.0f, std::chrono::milliseconds(1500), EasingType::InSine));
+                std::make_unique<BodyPieceFadeAnimation>(body_piece, 1.0F, 0.0F, std::chrono::milliseconds(1500), EasingType::InSine));
         }
         auto fade_out_fade_in = std::make_unique<SequenceAnimation>();
         fade_out_fade_in->addAnimationsFromContainer(std::move(fade_out_animation));
@@ -120,7 +123,7 @@ Snake::Snake()
 {
 }
 
-void Snake::setAnimationManager(IAnimationManagerImpl<>* animation_manager)
+void Snake::setAnimationManager(IAnimationManager* animation_manager)
 {
     assert(animation_manager);
     m_AnimationManager = animation_manager;
@@ -202,45 +205,45 @@ sf::Vector2f Snake::calculateNewHeadPosition(MoveDirection direction) const
         case MoveDirection::Down:
             if (m_Head->getPosition().y + block_metrics.y > static_cast<float>(grid_metrics.y) * block_metrics.y)
             {
-                return {m_Head->getPosition().x, 0.0f};
+                return {m_Head->getPosition().x, 0.0F};
             }
             else
             {
-                return m_Head->getPosition() + sf::Vector2f{0.0f, block_metrics.y};
+                return m_Head->getPosition() + sf::Vector2f{0.0F, block_metrics.y};
             }
         case MoveDirection::Up:
-            if (m_Head->getPosition().y - block_metrics.y < 0.0f)
+            if (m_Head->getPosition().y - block_metrics.y < 0.0F)
             {
                 return {m_Head->getPosition().x, static_cast<float>(grid_metrics.y) * block_metrics.y};
             }
             else
             {
-                return m_Head->getPosition() + sf::Vector2f{0.0f, -block_metrics.y};
+                return m_Head->getPosition() + sf::Vector2f{0.0F, -block_metrics.y};
             }
         case MoveDirection::Right:
             if (m_Head->getPosition().x + block_metrics.x > static_cast<float>(grid_metrics.x) * block_metrics.x)
             {
-                return {0.0f, m_Head->getPosition().y};
+                return {0.0F, m_Head->getPosition().y};
             }
             else
             {
-                return m_Head->getPosition() + sf::Vector2f{block_metrics.x, 0.0f};
+                return m_Head->getPosition() + sf::Vector2f{block_metrics.x, 0.0F};
             }
         case MoveDirection::Left:
-            if (m_Head->getPosition().x - block_metrics.x < 0.0f)
+            if (m_Head->getPosition().x - block_metrics.x < 0.0F)
             {
                 return {static_cast<float>(grid_metrics.x) * block_metrics.x, m_Head->getPosition().y};
             }
             else
             {
-                return m_Head->getPosition() + sf::Vector2f{-block_metrics.x, 0.0f};
+                return m_Head->getPosition() + sf::Vector2f{-block_metrics.x, 0.0F};
             }
         default:
             throw std::runtime_error("Invalid value of move direction");
     }
     return {};
 }
-MoveDirection Snake::getOppositeDirection(MoveDirection direction) const
+MoveDirection Snake::getOppositeDirection(MoveDirection direction)
 {
     static constexpr std::array<MoveDirection, 4UL> opposites{MoveDirection::Down, MoveDirection::Up, MoveDirection::Right,
                                                               MoveDirection::Left};
@@ -252,9 +255,11 @@ void Snake::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
     struct reverse
     {
-        reverse(const std::deque<std::shared_ptr<sf::RectangleShape>>* obj) : obj{obj} {}
-        auto begin() { return obj->crbegin(); }
-        auto end() { return obj->crend(); }
+        explicit reverse(const std::deque<std::shared_ptr<sf::RectangleShape>>* obj) : obj{obj} {}
+        [[nodiscard]] auto begin() const { return obj->crbegin(); }
+        [[nodiscard]] auto end() const { return obj->crend(); }
+
+    private:
         std::deque<std::shared_ptr<sf::RectangleShape>> const* obj;
     };
     target.draw(m_Food, states);

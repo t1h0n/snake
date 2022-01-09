@@ -12,7 +12,7 @@ class SequenceAnimationImpl : public CAnimation<DurationType>
 public:
     SequenceAnimationImpl() = default;
     template <typename... Args>
-    SequenceAnimationImpl(Args&&... args)
+    explicit SequenceAnimationImpl(Args&&... args)
     {
         fillContainerFromVariadic(std::forward<Args>(args)...);
     }
@@ -32,10 +32,10 @@ public:
     {
         fillContainerFromVariadic(std::forward<Args>(args)...);
     }
-    virtual void play_impl(DurationType ms) override
+    virtual void play_impl(DurationType t) override
     {
         auto& top_animation = m_AnimationList.front();
-        top_animation->play(ms);
+        top_animation->play(t);
         if (top_animation->isFinished())
         {
             top_animation->invokeFinishedCallback();

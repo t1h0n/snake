@@ -5,11 +5,11 @@ template <typename DurationType = std::chrono::milliseconds>
 class WaitAnimationImpl : public CAnimation<DurationType>
 {
 public:
-    WaitAnimationImpl(DurationType duration) : m_Duration{duration} {}
+    explicit WaitAnimationImpl(DurationType duration) : m_Duration{duration} {}
 
-    void play_impl(DurationType ms)
+    void play_impl(DurationType t)
     {
-        m_CurrentTime += ms;
+        m_CurrentTime += t;
         CAnimation<DurationType>::m_Finished = m_CurrentTime >= m_Duration;
     }
 

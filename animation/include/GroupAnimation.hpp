@@ -3,14 +3,13 @@
 #include <deque>
 #include <memory>
 
-template <typename DurationType = std::chrono::milliseconds,
-          typename AnimationPointerType = std::unique_ptr<IAnimationImpl<DurationType>>>
+template <typename DurationType = std::chrono::milliseconds, typename AnimationPointerType = std::unique_ptr<IAnimationImpl<DurationType>>>
 class GroupAnimationImpl : public CAnimation<DurationType>
 {
 public:
     GroupAnimationImpl() = default;
     template <typename... Args>
-    GroupAnimationImpl(Args&&... args)
+    explicit GroupAnimationImpl(Args&&... args)
     {
         fillContainerFromVariadic(std::forward<Args>(args)...);
     }
@@ -18,8 +17,7 @@ public:
     void addAnimationsFromContainer(ContainerType&& animation_container)
     {
         assert(!animation_container.empty());
-        for (std::move_iterator start{animation_container.begin()}, end{animation_container.end()}; start != end;
-             ++start)
+        for (std::move_iterator start{animation_container.begin()}, end{animation_container.end()}; start != end; ++start)
         {
             assert(*start);
             m_AnimationList.push_back(*start);
@@ -30,12 +28,12 @@ public:
     {
         fillContainerFromVariadic(std::forward<Args>(args)...);
     }
-    virtual void play_impl(DurationType ms) override
+    virtual void play_impl(DurationType t) override
     {
         CAnimation<DurationType>::m_Finished = true;
         for (auto& animation : m_AnimationList)
         {
-            animation->play(ms);
+            animation->play(t);
             CAnimation<DurationType>::m_Finished = CAnimation<DurationType>::m_Finished && animation->isFinished();
         }
     }

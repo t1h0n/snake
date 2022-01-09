@@ -63,7 +63,7 @@ public:
     void move(MoveDirection direction);
     GameResult getGameResult() const;
     sf::Vector2f calculateNewHeadPosition(MoveDirection direction) const;
-    MoveDirection getOppositeDirection(MoveDirection direction) const;
+    static MoveDirection getOppositeDirection(MoveDirection direction);
     void setAnimationManager(IAnimationManager* manager);
 
 private:

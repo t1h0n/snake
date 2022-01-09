@@ -3,14 +3,11 @@
 #include "Snake.hpp"
 #include <SFML/Graphics/RenderTarget.hpp>
 
-Food::Food(Snake const& snake) : m_FoodGenerator(snake), m_FoodSprite(block_metrics)
-{
-    m_FoodSprite.setFillColor(food_color);
-}
+Food::Food(Snake const& snake) : m_FoodGenerator(snake), m_FoodSprite(block_metrics) { m_FoodSprite.setFillColor(food_color); }
 
 static bool approximatelyEquals(sf::Vector2f const& left, sf::Vector2f const& right)
 {
-    static auto constexpr PRECISION = 0.005f;
+    static auto constexpr PRECISION = 0.005F;
     const auto result = left - right;
     return std::abs(result.x) <= PRECISION && std::abs(result.y) <= PRECISION;
 }
@@ -23,8 +20,7 @@ std::optional<sf::Vector2f> Food::FoodGenerator::generatePosition()
     {
         for (std::int32_t j = 0; j < grid_metrics.y; ++j)
         {
-            auto const possible_position =
-                sf::Vector2f{static_cast<float>(i) * block_metrics.x, static_cast<float>(j) * block_metrics.y};
+            auto const possible_position = sf::Vector2f{static_cast<float>(i) * block_metrics.x, static_cast<float>(j) * block_metrics.y};
             bool found = false;
             for (auto const& body_piece : snake.m_BodyPieces)
             {
@@ -40,7 +36,7 @@ std::optional<sf::Vector2f> Food::FoodGenerator::generatePosition()
             }
         }
     }
-    if (possible_positions.size() == 0U)
+    if (possible_positions.empty())
     {
         return std::nullopt;
     }
@@ -57,9 +53,6 @@ bool Food::generateNewPosition()
         m_FoodSprite.setPosition(*new_food_position);
         return true;
     }
-    else
-    {
-        return false;
-    }
+    return false;
 }
 const sf::Vector2f& Food::getPosition() const { return m_FoodSprite.getPosition(); }

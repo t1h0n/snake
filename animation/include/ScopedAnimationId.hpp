@@ -10,7 +10,7 @@ template <typename DurationType = std::chrono::milliseconds, typename AnimationP
 class ScopedAnimationIdImpl
 {
 public:
-    ScopedAnimationIdImpl() : m_AnimationId{0u}, m_Manager{nullptr} {}
+    ScopedAnimationIdImpl() : m_AnimationId{static_cast<typename DurationType::rep>(0)}, m_Manager{nullptr} {}
     ScopedAnimationIdImpl(AnimationId id, IAnimationManagerImpl<DurationType, AnimationPointerType>* manager);
     ScopedAnimationIdImpl(ScopedAnimationIdImpl& other);
     ScopedAnimationIdImpl(ScopedAnimationIdImpl&& other);

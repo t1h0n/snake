@@ -15,7 +15,7 @@ struct opacitySetter
 {
     static sf::Color change_opacity(sf::Color color, float opacity)
     {
-        assert(opacity >= 0.0f && opacity <= 255.0f);
+        assert(opacity >= 0.0f && opacity <= 1.0F);
         color.a = static_cast<std::uint8_t>(opacity * 255.0F);
         return color;
     }

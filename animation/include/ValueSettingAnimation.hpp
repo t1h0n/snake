@@ -38,18 +38,18 @@ enum class EasingType
     // InOutBounce
 };
 
-inline static const float pi_v = std::acos(-1.0f);
+inline static const float pi_v = std::acos(-1.0F);
 struct Linear
 {
     float operator()(float t) { return t; }
 };
 struct InSine
 {
-    float operator()(float t) { return 1.0f - std::cos((t * pi_v) / 2.0f); }
+    float operator()(float t) { return 1.0F - std::cos((t * pi_v) / 2.0F); }
 };
 struct OutSine
 {
-    float operator()(float t) { return std::sin((t * pi_v) / 2.0f); }
+    float operator()(float t) { return std::sin((t * pi_v) / 2.0F); }
 };
 
 std::function<float(float)> mapEnumToFunctor(EasingType type)
@@ -75,14 +75,14 @@ class ValueSettingAnimationImpl : public CAnimation<DurationType>
 public:
     ValueSettingAnimationImpl(const std::shared_ptr<Obj>& obj, ValueType start, ValueType end, DurationType duration,
                               EasingType type = EasingType::Linear)
-        : m_Object{obj}, m_StartValue{std::move(start)}, m_EndValue{std::move(end)}, m_SwapFactor{0.0f},
+        : m_Object{obj}, m_StartValue{std::move(start)}, m_EndValue{std::move(end)},
           m_CurrentTime{static_cast<typename DurationType::rep>(0)}, m_Duration{duration}, m_TimeTransformer{mapEnumToFunctor(type)}
     {
         assert(m_TimeTransformer && m_StartValue != m_EndValue);
     }
     ValueSettingAnimationImpl(const std::shared_ptr<Obj>& obj, ValueType start, ValueType end, DurationType duration,
                               std::function<float(float)> time_transforemer)
-        : m_Object{obj}, m_StartValue{std::move(start)}, m_EndValue{std::move(end)}, m_SwapFactor{0.0f},
+        : m_Object{obj}, m_StartValue{std::move(start)}, m_EndValue{std::move(end)},
           m_CurrentTime{static_cast<typename DurationType::rep>(0)}, m_Duration{duration}, m_TimeTransformer{std::move(time_transforemer)}
     {
         assert(m_TimeTransformer && m_StartValue != m_EndValue);
@@ -101,7 +101,7 @@ public:
                 else
                 {
                     CAnimation<DurationType>::m_Finished = true;
-                    return m_TimeTransformer(1.0f);
+                    return m_TimeTransformer(1.0F);
                 }
             }();
         // clang-format on
@@ -119,7 +119,6 @@ protected:
     std::weak_ptr<Obj> m_Object;
     ValueType m_StartValue;
     ValueType m_EndValue;
-    float m_SwapFactor;
     DurationType m_CurrentTime;
     DurationType m_Duration;
     std::function<float(float)> m_TimeTransformer;

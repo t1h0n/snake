@@ -22,7 +22,7 @@ public:
     }
     virtual void play(DurationType t) override
     {
-        assert(t >= IAnimationImpl<DurationType>::ZERO_DURATION);
+        assert(t > IAnimationImpl<DurationType>::ZERO_DURATION);
         if (!m_Finished)
         {
             play_impl(t);

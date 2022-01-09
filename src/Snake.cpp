@@ -7,7 +7,6 @@
 #include "WaitAnimation.hpp"
 #include <cassert>
 #include <iostream>
-#include <thread>
 
 namespace
 {

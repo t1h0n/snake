@@ -10,10 +10,10 @@ class CAnimationManagerImpl : public IAnimationManagerImpl<DurationType, Animati
 {
 public:
     CAnimationManagerImpl() = default;
-    virtual void cancelAnimationById(AnimationId id) override;
+    virtual void cancelAnimationById(AnimationId const& id) override;
     [[nodiscard]] virtual ScopedAnimationIdImpl<DurationType, AnimationPointerType> addAnimation(AnimationPointerType animation) override;
     virtual AnimationId addAnimationRawId(AnimationPointerType animation) override;
-    virtual void play(DurationType t) override;
+    virtual void play(DurationType const& t) override;
 
     CAnimationManagerImpl(const CAnimationManagerImpl&) = delete;
     void operator=(const CAnimationManagerImpl&) = delete;
@@ -22,7 +22,7 @@ protected:
     static AnimationId createUniqueAnimationId();
     struct AnimationWithId
     {
-        AnimationWithId(AnimationId id, AnimationPointerType&& ptr) : id{id}, ptr{std::move(ptr)} {}
+        AnimationWithId(AnimationId const& id, AnimationPointerType&& ptr) : id{id}, ptr{std::move(ptr)} {}
         AnimationId id;
         AnimationPointerType ptr;
     };
@@ -30,7 +30,7 @@ protected:
 };
 
 template <typename DurationType, typename AnimationPointerType>
-inline void CAnimationManagerImpl<DurationType, AnimationPointerType>::cancelAnimationById(AnimationId id)
+inline void CAnimationManagerImpl<DurationType, AnimationPointerType>::cancelAnimationById(AnimationId const& id)
 {
     const auto animation_to_be_removed =
         std::find_if(m_AnimationList.cbegin(), m_AnimationList.cend(),
@@ -57,7 +57,7 @@ inline AnimationId CAnimationManagerImpl<DurationType, AnimationPointerType>::ad
     return m_AnimationList.back().id;
 }
 template <typename DurationType, typename AnimationPointerType>
-inline void CAnimationManagerImpl<DurationType, AnimationPointerType>::play(DurationType t)
+inline void CAnimationManagerImpl<DurationType, AnimationPointerType>::play(DurationType const& t)
 {
     for (auto& animation_with_id : m_AnimationList)
     {

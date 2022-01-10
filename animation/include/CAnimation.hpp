@@ -15,12 +15,12 @@ public:
         }
     }
     virtual bool isFinished() const override { return m_Finished; }
-    virtual void setFinishedCallback(std::function<void()> callback) override
+    virtual void setFinishedCallback(const std::function<void()>& callback) override
     {
         assert(callback);
-        m_FinishedCallback = std::move(callback);
+        m_FinishedCallback = callback;
     }
-    virtual void play(DurationType t) override
+    virtual void play(DurationType const& t) override
     {
         assert(t > IAnimationImpl<DurationType>::ZERO_DURATION);
         if (!m_Finished)
@@ -30,7 +30,7 @@ public:
     }
 
 protected:
-    virtual void play_impl(DurationType t) = 0;
+    virtual void play_impl(DurationType const& t) = 0;
     std::function<void()> m_FinishedCallback;
     bool m_Finished;
 };

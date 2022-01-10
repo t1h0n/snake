@@ -73,21 +73,21 @@ template <typename Obj, typename ValueType, typename ValueSetter, typename Durat
 class ValueSettingAnimationImpl : public CAnimation<DurationType>
 {
 public:
-    ValueSettingAnimationImpl(const std::shared_ptr<Obj>& obj, ValueType start, ValueType end, DurationType duration,
+    ValueSettingAnimationImpl(const std::shared_ptr<Obj>& obj, ValueType const& start, ValueType const& end, DurationType const& duration,
                               EasingType type = EasingType::Linear)
-        : m_Object{obj}, m_StartValue{std::move(start)}, m_EndValue{std::move(end)},
-          m_CurrentTime{static_cast<typename DurationType::rep>(0)}, m_Duration{duration}, m_TimeTransformer{mapEnumToFunctor(type)}
+        : m_Object{obj}, m_StartValue{start}, m_EndValue{end}, m_CurrentTime{static_cast<typename DurationType::rep>(0)},
+          m_Duration{duration}, m_TimeTransformer{mapEnumToFunctor(type)}
+    {
+        assert(m_StartValue != m_EndValue && m_Duration >= IAnimationImpl<DurationType>::ZERO_DURATION);
+    }
+    ValueSettingAnimationImpl(const std::shared_ptr<Obj>& obj, ValueType  const& start, ValueType  const& end, DurationType  const& duration,
+                              const std::function<float(float)>& time_transforemer)
+        : m_Object{obj}, m_StartValue{start}, m_EndValue{end},
+          m_CurrentTime{static_cast<typename DurationType::rep>(0)}, m_Duration{duration}, m_TimeTransformer{time_transforemer}
     {
         assert(m_TimeTransformer && m_StartValue != m_EndValue && m_Duration >= IAnimationImpl<DurationType>::ZERO_DURATION);
     }
-    ValueSettingAnimationImpl(const std::shared_ptr<Obj>& obj, ValueType start, ValueType end, DurationType duration,
-                              std::function<float(float)> time_transforemer)
-        : m_Object{obj}, m_StartValue{std::move(start)}, m_EndValue{std::move(end)},
-          m_CurrentTime{static_cast<typename DurationType::rep>(0)}, m_Duration{duration}, m_TimeTransformer{std::move(time_transforemer)}
-    {
-        assert(m_TimeTransformer && m_StartValue != m_EndValue && m_Duration >= IAnimationImpl<DurationType>::ZERO_DURATION);
-    }
-    virtual void play_impl(DurationType t) override
+    virtual void play_impl(DurationType const& t) override
     {
         m_CurrentTime += t;
         // clang-format off

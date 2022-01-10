@@ -29,7 +29,7 @@ public:
     {
         fillContainerFromVariadic(std::forward<Args>(args)...);
     }
-    virtual void play_impl(DurationType t) override
+    virtual void play_impl(DurationType const& t) override
     {
         if (m_AnimationList.cbegin() != m_AnimationList.cend())
         {

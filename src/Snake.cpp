@@ -83,7 +83,7 @@ ISnakeState* GameOverSnakeState::update(Snake& snake, float /*ms*/)
         std::deque<std::unique_ptr<IAnimation>> fade_out_animation;
         std::deque<std::unique_ptr<IAnimation>> fade_in_animation_short;
         std::deque<std::unique_ptr<IAnimation>> fade_out_animation_short;
-        const std::int64_t duration = 300L / static_cast<int>(snake.m_BodyPieces.size());
+        const std::int64_t duration = 300L / static_cast<std::int64_t>(snake.m_BodyPieces.size());
         for (const auto& body_piece : snake.m_BodyPieces)
         {
             fade_out_animation.push_front(
@@ -190,7 +190,7 @@ GameResult Snake::getGameResult() const
 
     for (; beg != end; ++beg)
     {
-        if (m_Head->getPosition() == (*beg)->getPosition())
+        if (approximatelyEquals(m_Head->getPosition(), (*beg)->getPosition()))
         {
             return GameResult::Loss;
         }

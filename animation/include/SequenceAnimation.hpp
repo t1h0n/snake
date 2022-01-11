@@ -3,7 +3,8 @@
 #include <deque>
 #include <iterator>
 #include <memory>
-
+namespace animation
+{
 template <typename DurationType = std::chrono::milliseconds, typename AnimationPointerType = std::unique_ptr<IAnimationImpl<DurationType>>>
 class SequenceAnimationImpl : public CAnimation<DurationType>
 {
@@ -15,13 +16,27 @@ public:
         fillContainerFromVariadic(std::forward<Args>(args)...);
     }
     template <typename ContainerType>
-    void addAnimationsFromContainer(ContainerType&& animation_container)
+    void addAnimationsFromContainer(ContainerType&& animation_container) // handle all cases
     {
+        static_assert(detail::has_member_value_type_v<ContainerType>);
+        static_assert(std::is_constructible_v<AnimationPointerType, typename ContainerType::value_type>);
+        static_assert(!std::is_const_v<ContainerType> || std::is_copy_constructible_v<AnimationPointerType>);
         assert(!animation_container.empty());
-        for (std::move_iterator start{animation_container.begin()}, end{animation_container.end()}; start != end; ++start)
+        if constexpr (!std::is_copy_constructible_v<AnimationPointerType> ||
+                      (std::is_rvalue_reference_v<ContainerType> && !std::is_const_v<ContainerType>))
         {
-            assert(*start);
-            m_AnimationList.push_back(*start);
+            for (std::move_iterator start{animation_container.begin()}, end{animation_container.end()}; start != end; ++start)
+            {
+                assert(*start);
+                m_AnimationList.push_back(*start);
+            }
+        }
+        else
+        {
+            for (const auto& animation : animation_container)
+            {
+                m_AnimationList.push_back(animation);
+            }
         }
     }
     template <typename... Args>
@@ -52,6 +67,7 @@ protected:
     template <typename T, typename... Args>
     void fillContainerFromVariadic(T&& first, Args&&... args)
     {
+        static_assert(std::is_constructible_v<AnimationPointerType, T>);
         assert(first);
         m_AnimationList.push_back(std::forward<T>(first));
         if constexpr (sizeof...(Args) > 0)
@@ -63,3 +79,4 @@ protected:
 };
 
 using SequenceAnimation = SequenceAnimationImpl<>;
+} // namespace animation

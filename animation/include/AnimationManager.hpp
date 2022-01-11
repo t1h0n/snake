@@ -4,19 +4,20 @@
 #include <algorithm>
 #include <atomic>
 #include <deque>
-
+namespace animation
+{
 template <typename DurationType = std::chrono::milliseconds, typename AnimationPointerType = std::unique_ptr<IAnimationImpl<DurationType>>>
-class CAnimationManagerImpl : public IAnimationManagerImpl<DurationType, AnimationPointerType>
+class AnimationManagerImpl : public IAnimationManagerImpl<DurationType, AnimationPointerType>
 {
 public:
-    CAnimationManagerImpl() = default;
+    AnimationManagerImpl() = default;
     virtual void cancelAnimationById(AnimationId const& id) override;
     [[nodiscard]] virtual ScopedAnimationIdImpl<DurationType, AnimationPointerType> addAnimation(AnimationPointerType animation) override;
     virtual AnimationId addAnimationRawId(AnimationPointerType animation) override;
     virtual void play(DurationType const& t) override;
 
-    CAnimationManagerImpl(const CAnimationManagerImpl&) = delete;
-    void operator=(const CAnimationManagerImpl&) = delete;
+    AnimationManagerImpl(const AnimationManagerImpl&) = delete;
+    void operator=(const AnimationManagerImpl&) = delete;
 
 protected:
     static AnimationId createUniqueAnimationId();
@@ -30,7 +31,7 @@ protected:
 };
 
 template <typename DurationType, typename AnimationPointerType>
-inline void CAnimationManagerImpl<DurationType, AnimationPointerType>::cancelAnimationById(AnimationId const& id)
+inline void AnimationManagerImpl<DurationType, AnimationPointerType>::cancelAnimationById(AnimationId const& id)
 {
     const auto animation_to_be_removed =
         std::find_if(m_AnimationList.cbegin(), m_AnimationList.cend(),
@@ -43,21 +44,21 @@ inline void CAnimationManagerImpl<DurationType, AnimationPointerType>::cancelAni
 }
 template <typename DurationType, typename AnimationPointerType>
 inline ScopedAnimationIdImpl<DurationType, AnimationPointerType>
-CAnimationManagerImpl<DurationType, AnimationPointerType>::addAnimation(AnimationPointerType animation)
+AnimationManagerImpl<DurationType, AnimationPointerType>::addAnimation(AnimationPointerType animation)
 {
     assert(animation);
     m_AnimationList.emplace_back(createUniqueAnimationId(), std::move(animation));
     return {m_AnimationList.back().id, this};
 }
 template <typename DurationType, typename AnimationPointerType>
-inline AnimationId CAnimationManagerImpl<DurationType, AnimationPointerType>::addAnimationRawId(AnimationPointerType animation)
+inline AnimationId AnimationManagerImpl<DurationType, AnimationPointerType>::addAnimationRawId(AnimationPointerType animation)
 {
     assert(animation);
     m_AnimationList.emplace_back(createUniqueAnimationId(), std::move(animation));
     return m_AnimationList.back().id;
 }
 template <typename DurationType, typename AnimationPointerType>
-inline void CAnimationManagerImpl<DurationType, AnimationPointerType>::play(DurationType const& t)
+inline void AnimationManagerImpl<DurationType, AnimationPointerType>::play(DurationType const& t)
 {
     for (auto& animation_with_id : m_AnimationList)
     {
@@ -72,10 +73,11 @@ inline void CAnimationManagerImpl<DurationType, AnimationPointerType>::play(Dura
 }
 
 template <typename DurationType, typename AnimationPointerType>
-inline AnimationId CAnimationManagerImpl<DurationType, AnimationPointerType>::createUniqueAnimationId()
+inline AnimationId AnimationManagerImpl<DurationType, AnimationPointerType>::createUniqueAnimationId()
 {
     static constexpr AnimationId INITIAL_VALUE = static_cast<AnimationId>(5000);
     static std::atomic<AnimationId> counter{INITIAL_VALUE};
     return counter++;
 }
-using CAnimationManager = CAnimationManagerImpl<>;
+using AnimationManager = AnimationManagerImpl<>;
+} // namespace animation

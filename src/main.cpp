@@ -1,4 +1,4 @@
-#include "CAnimationManager.hpp"
+#include "AnimationManager.hpp"
 #include "Common.hpp"
 #include "Food.hpp"
 #include "Snake.hpp"
@@ -59,7 +59,7 @@ private:
 private:
     std::unique_ptr<sf::RenderWindow> m_Window;
     Snake m_Snake;
-    CAnimationManager m_AnimatinManager;
+    animation::AnimationManager m_AnimatinManager;
 };
 
 int main()

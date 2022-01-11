@@ -1,6 +1,7 @@
 #pragma once
 #include "CAnimation.hpp"
-
+namespace animation
+{
 template <typename DurationType = std::chrono::milliseconds>
 class WaitAnimationImpl : public CAnimation<DurationType>
 {
@@ -23,3 +24,4 @@ protected:
 };
 
 using WaitAnimation = WaitAnimationImpl<>;
+} // namespace animation

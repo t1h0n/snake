@@ -14,7 +14,7 @@ struct opacitySetter
 {
     static sf::Color change_opacity(sf::Color color, float opacity)
     {
-        assert(opacity >= 0.0f && opacity <= 1.0F);
+        assert(opacity >= 0.0F && opacity <= 1.0F);
         color.a = static_cast<std::uint8_t>(opacity * 255.0F);
         return color;
     }
@@ -23,7 +23,7 @@ struct opacitySetter
         obj.setFillColor(change_opacity(obj.getFillColor(), opacity_start * (1 - scale_factor) + opacity_end * scale_factor));
     }
 };
-using BodyPieceFadeAnimation = ValueSettingAnimationImpl<sf::RectangleShape, float, opacitySetter>;
+using BodyPieceFadeAnimation = animation::ValueSettingAnimationImpl<sf::RectangleShape, float, opacitySetter>;
 
 bool approximatelyEquals(sf::Vector2f const& left, sf::Vector2f const& right)
 {
@@ -80,6 +80,7 @@ ISnakeState* GameOverSnakeState::update(Snake& snake, float /*ms*/)
     {
         m_Initialized = true;
         m_AnimationFinished = false;
+        using namespace animation;
         std::deque<std::unique_ptr<IAnimation>> fade_out_animation;
         std::deque<std::unique_ptr<IAnimation>> fade_in_animation_short;
         std::deque<std::unique_ptr<IAnimation>> fade_out_animation_short;
@@ -123,7 +124,7 @@ Snake::Snake()
 {
 }
 
-void Snake::setAnimationManager(IAnimationManager* animation_manager)
+void Snake::setAnimationManager(animation::IAnimationManager* animation_manager)
 {
     assert(animation_manager);
     m_AnimationManager = animation_manager;

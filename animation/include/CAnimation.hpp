@@ -1,7 +1,8 @@
 #pragma once
 #include "IAnimation.hpp"
 #include <cassert>
-
+namespace animation
+{
 template <typename DurationType = std::chrono::milliseconds>
 class CAnimation : public IAnimationImpl<DurationType>
 {
@@ -34,3 +35,4 @@ protected:
     std::function<void()> m_FinishedCallback;
     bool m_Finished;
 };
+} // namespace animation

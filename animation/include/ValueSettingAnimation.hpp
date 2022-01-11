@@ -2,7 +2,8 @@
 #include "CAnimation.hpp"
 #include <cmath>
 #include <memory>
-
+namespace animation
+{
 enum class EasingType
 {
     Linear,
@@ -51,7 +52,8 @@ struct OutSine
 {
     float operator()(float t) { return std::sin((t * pi_v) / 2.0F); }
 };
-
+namespace detail
+{
 std::function<float(float)> mapEnumToFunctor(EasingType type)
 {
     switch (type)
@@ -67,23 +69,24 @@ std::function<float(float)> mapEnumToFunctor(EasingType type)
     }
     return Linear();
 }
-
-template <typename Obj, typename ValueType, typename ValueSetter, typename DurationType = std::chrono::milliseconds,
-          typename = std::enable_if_t<std::is_invocable_v<ValueSetter, Obj&, ValueType const&, ValueType const&, float>>>
+} // namespace detail
+template <typename Obj, typename ValueType, typename ValueSetter, typename DurationType = std::chrono::milliseconds>
 class ValueSettingAnimationImpl : public CAnimation<DurationType>
 {
+    static_assert(std::is_invocable_v<ValueSetter, Obj&, ValueType const&, ValueType const&, float>);
+
 public:
     ValueSettingAnimationImpl(const std::shared_ptr<Obj>& obj, ValueType const& start, ValueType const& end, DurationType const& duration,
                               EasingType type = EasingType::Linear)
         : m_Object{obj}, m_StartValue{start}, m_EndValue{end}, m_CurrentTime{static_cast<typename DurationType::rep>(0)},
-          m_Duration{duration}, m_TimeTransformer{mapEnumToFunctor(type)}
+          m_Duration{duration}, m_TimeTransformer{detail::mapEnumToFunctor(type)}
     {
         assert(m_StartValue != m_EndValue && m_Duration >= IAnimationImpl<DurationType>::ZERO_DURATION);
     }
-    ValueSettingAnimationImpl(const std::shared_ptr<Obj>& obj, ValueType  const& start, ValueType  const& end, DurationType  const& duration,
+    ValueSettingAnimationImpl(const std::shared_ptr<Obj>& obj, ValueType const& start, ValueType const& end, DurationType const& duration,
                               const std::function<float(float)>& time_transforemer)
-        : m_Object{obj}, m_StartValue{start}, m_EndValue{end},
-          m_CurrentTime{static_cast<typename DurationType::rep>(0)}, m_Duration{duration}, m_TimeTransformer{time_transforemer}
+        : m_Object{obj}, m_StartValue{start}, m_EndValue{end}, m_CurrentTime{static_cast<typename DurationType::rep>(0)},
+          m_Duration{duration}, m_TimeTransformer{time_transforemer}
     {
         assert(m_TimeTransformer && m_StartValue != m_EndValue && m_Duration >= IAnimationImpl<DurationType>::ZERO_DURATION);
     }
@@ -124,3 +127,4 @@ protected:
     std::function<float(float)> m_TimeTransformer;
     ValueSetter m_ValueSetter;
 };
+} // namespace animation

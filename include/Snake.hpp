@@ -46,7 +46,7 @@ public:
     virtual ISnakeState* update(Snake& snake, float ms) override;
 
 private:
-    ScopedAnimationId m_AnimationId;
+    animation::ScopedAnimationId m_AnimationId;
     bool m_Initialized{false};
     bool m_AnimationFinished{false};
 };
@@ -64,7 +64,7 @@ public:
     GameResult getGameResult() const;
     sf::Vector2f calculateNewHeadPosition(MoveDirection direction) const;
     static MoveDirection getOppositeDirection(MoveDirection direction);
-    void setAnimationManager(IAnimationManager* manager);
+    void setAnimationManager(animation::IAnimationManager* manager);
 
 private:
     std::deque<std::shared_ptr<sf::RectangleShape>> m_BodyPieces;
@@ -77,7 +77,7 @@ private:
 
     NormalSnakeState m_NormalSnakeState;
     GameOverSnakeState m_GameOverSnakeState;
-    IAnimationManager* m_AnimationManager;
+    animation::IAnimationManager* m_AnimationManager;
     inline static auto const head_color = sf::Color{199U, 177U, 152U};
     inline static auto const body_color = sf::Color{223U, 211U, 195U};
     inline static auto const tail_color = sf::Color{240U, 236U, 227U};

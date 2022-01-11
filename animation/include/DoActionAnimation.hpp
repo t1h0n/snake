@@ -1,6 +1,7 @@
 #pragma once
 #include "CAnimation.hpp"
-
+namespace animation
+{
 template <typename DurationType = std::chrono::milliseconds>
 class DoActionImpl : public CAnimation<DurationType>
 {
@@ -17,3 +18,4 @@ protected:
     std::function<void()> m_StartedCallback;
 };
 using DoActionAnimation = DoActionImpl<>;
+} // namespace animation

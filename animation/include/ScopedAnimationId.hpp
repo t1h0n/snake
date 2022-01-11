@@ -2,7 +2,8 @@
 #include "IAnimation.hpp"
 #include <cassert>
 #include <memory>
-
+namespace animation
+{
 template <typename DurationType, typename AnimationPointerType>
 class IAnimationManagerImpl;
 
@@ -62,3 +63,4 @@ private:
 };
 
 using ScopedAnimationId = ScopedAnimationIdImpl<>;
+} // namespace animation

@@ -1,13 +1,18 @@
 #pragma once
+#include "TypeUtilities.hpp"
 #include <chrono>
 #include <cstdint>
 #include <functional>
 
+namespace animation
+{
 using AnimationId = std::uint32_t;
 
 template <typename DurationType = std::chrono::milliseconds>
 class IAnimationImpl
 {
+    static_assert(detail::has_member_rep_v<DurationType>);
+
 protected:
     static constexpr auto ZERO_DURATION = DurationType{static_cast<typename DurationType::rep>(0)};
 
@@ -22,3 +27,4 @@ public:
 };
 
 using IAnimation = IAnimationImpl<>;
+} // namespace animation

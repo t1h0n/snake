@@ -19,5 +19,6 @@ namespace detail
 
 DEFINE_HAS_MEMBER(rep);
 DEFINE_HAS_MEMBER(value_type);
+DEFINE_HAS_MEMBER(period);
 } // namespace detail
 } // namespace animation

@@ -23,7 +23,7 @@ protected:
     static AnimationId createUniqueAnimationId();
     struct AnimationWithId
     {
-        AnimationWithId(AnimationId const& id, AnimationPointerType&& ptr) : id{id}, ptr{std::move(ptr)} {}
+        AnimationWithId(AnimationId&& id, AnimationPointerType&& ptr) : id{std::move(id)}, ptr{std::move(ptr)} {}
         AnimationId id;
         AnimationPointerType ptr;
     };

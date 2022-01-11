@@ -7,7 +7,7 @@ class WaitAnimationImpl : public CAnimation<DurationType>
 {
 public:
     explicit WaitAnimationImpl(DurationType const& duration)
-        : m_Duration{duration}, m_CurrentTime{static_cast<typename DurationType::rep>(0)}
+        : m_Duration{duration}, m_CurrentTime{IAnimationImpl<DurationType>::ZERO_DURATION}
     {
         assert(m_Duration > IAnimationImpl<DurationType>::ZERO_DURATION);
     }

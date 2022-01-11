@@ -16,7 +16,7 @@ public:
         fillContainerFromVariadic(std::forward<Args>(args)...);
     }
     template <typename ContainerType>
-    void addAnimationsFromContainer(ContainerType&& animation_container) // handle all cases
+    void addAnimationsFromContainer(ContainerType&& animation_container)
     {
         static_assert(detail::has_member_value_type_v<ContainerType>);
         static_assert(std::is_constructible_v<AnimationPointerType, typename ContainerType::value_type>);

@@ -74,18 +74,19 @@ template <typename Obj, typename ValueType, typename ValueSetter, typename Durat
 class ValueSettingAnimationImpl : public CAnimation<DurationType>
 {
     static_assert(std::is_invocable_v<ValueSetter, Obj&, ValueType const&, ValueType const&, float>);
+    static_assert(detail::has_member_period_v<DurationType>);
 
 public:
     ValueSettingAnimationImpl(const std::shared_ptr<Obj>& obj, ValueType const& start, ValueType const& end, DurationType const& duration,
                               EasingType type = EasingType::Linear)
-        : m_Object{obj}, m_StartValue{start}, m_EndValue{end}, m_CurrentTime{static_cast<typename DurationType::rep>(0)},
+        : m_Object{obj}, m_StartValue{start}, m_EndValue{end}, m_CurrentTime{IAnimationImpl<DurationType>::ZERO_DURATION},
           m_Duration{duration}, m_TimeTransformer{detail::mapEnumToFunctor(type)}
     {
         assert(m_StartValue != m_EndValue && m_Duration >= IAnimationImpl<DurationType>::ZERO_DURATION);
     }
     ValueSettingAnimationImpl(const std::shared_ptr<Obj>& obj, ValueType const& start, ValueType const& end, DurationType const& duration,
                               const std::function<float(float)>& time_transforemer)
-        : m_Object{obj}, m_StartValue{start}, m_EndValue{end}, m_CurrentTime{static_cast<typename DurationType::rep>(0)},
+        : m_Object{obj}, m_StartValue{start}, m_EndValue{end}, m_CurrentTime{IAnimationImpl<DurationType>::ZERO_DURATION},
           m_Duration{duration}, m_TimeTransformer{time_transforemer}
     {
         assert(m_TimeTransformer && m_StartValue != m_EndValue && m_Duration >= IAnimationImpl<DurationType>::ZERO_DURATION);

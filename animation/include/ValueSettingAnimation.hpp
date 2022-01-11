@@ -54,7 +54,7 @@ struct OutSine
 };
 namespace detail
 {
-std::function<float(float)> mapEnumToFunctor(EasingType type)
+inline std::function<float(float)> mapEnumToFunctor(EasingType type)
 {
     switch (type)
     {

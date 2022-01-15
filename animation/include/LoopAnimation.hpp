@@ -1,7 +1,5 @@
 #pragma once
 #include "CAnimation.hpp"
-#include <cassert>
-#include <iostream>
 #include <memory>
 #include <stdexcept>
 namespace animation

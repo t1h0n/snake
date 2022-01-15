@@ -37,5 +37,6 @@ struct is_animation_container<
 };
 template <typename ContainerType, typename AnimationPtrType>
 inline constexpr bool is_animation_container_v = is_animation_container<ContainerType, AnimationPtrType>::value;
+
 } // namespace detail
 } // namespace animation

@@ -21,7 +21,7 @@ public:
     virtual void invokeFinishedCallback() const = 0;
     virtual bool isFinished() const = 0;
     virtual void setFinishedCallback(const std::function<void()>& callback) = 0;
-
+    virtual void reset() = 0;
     IAnimationImpl() = default;
     virtual ~IAnimationImpl() = default;
 };

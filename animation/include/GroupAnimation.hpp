@@ -9,11 +9,12 @@ template <typename DurationType = std::chrono::milliseconds, typename AnimationP
 class GroupAnimationImpl : public CAnimation<DurationType>
 {
 public:
-    GroupAnimationImpl() = default;
+    GroupAnimationImpl() : m_Start{m_AnimationList.begin()} {}
     template <typename... Args>
     explicit GroupAnimationImpl(Args&&... args)
     {
         fillContainerFromVariadic(std::forward<Args>(args)...);
+        m_Start = m_AnimationList.begin();
     }
     template <typename ContainerType>
     void addAnimationsFromContainer(ContainerType&& animation_container)
@@ -38,23 +39,51 @@ public:
                 m_AnimationList.push_back(animation);
             }
         }
+        m_Start = m_AnimationList.begin();
     }
     template <typename... Args>
     void addAnimations(Args&&... args)
     {
         fillContainerFromVariadic(std::forward<Args>(args)...);
-    }
-    virtual void play_impl(DurationType const& t) override
-    {
-        CAnimation<DurationType>::m_Finished = true;
-        for (auto& animation : m_AnimationList)
-        {
-            animation->play(t);
-            CAnimation<DurationType>::m_Finished = CAnimation<DurationType>::m_Finished && animation->isFinished();
-        }
+        m_Start = m_AnimationList.begin();
     }
 
-protected:
+protected: // methods
+    virtual void play_impl(DurationType const& t) override
+    {
+        auto start = m_Start;
+        auto end = m_AnimationList.end();
+        bool first_unfinised_found = false;
+        for (; start != end; ++start)
+        {
+            auto& animation = start->animation_ptr;
+            animation->play(t);
+            if (animation->isFinished())
+            {
+                if (!start->callback_invoked)
+                {
+                    start->callback_invoked = true;
+                    animation->invokeFinishedCallback();
+                }
+            }
+            else if (!first_unfinised_found)
+            {
+                first_unfinised_found = true;
+                m_Start = start;
+            }
+        }
+        CAnimation<DurationType>::m_Finished = !first_unfinised_found;
+    }
+
+    virtual void reset_impl() override
+    {
+        for (auto& animation : m_AnimationList)
+        {
+            animation.animation_ptr->reset();
+            animation.callback_invoked = false;
+        }
+        m_Start = m_AnimationList.begin();
+    }
     template <typename T, typename... Args>
     void fillContainerFromVariadic(T&& first, Args&&... args)
     {
@@ -66,7 +95,18 @@ protected:
             fillContainerFromVariadic(std::forward<Args>(args)...);
         }
     }
-    std::deque<AnimationPointerType> m_AnimationList;
+
+protected: // members
+    struct AnimationWithFlag
+    {
+        AnimationWithFlag(AnimationPointerType&& animation_ptr) : animation_ptr{std::move(animation_ptr)}, callback_invoked{false} {}
+        AnimationWithFlag(const AnimationPointerType& animation_ptr) : animation_ptr{animation_ptr}, callback_invoked{false} {}
+        AnimationPointerType animation_ptr;
+        bool callback_invoked;
+    };
+    using InnerAnimationContainer = std::deque<AnimationWithFlag>;
+    InnerAnimationContainer m_AnimationList;
+    typename InnerAnimationContainer::iterator m_Start;
 };
 
 using GroupAnimation = GroupAnimationImpl<>;

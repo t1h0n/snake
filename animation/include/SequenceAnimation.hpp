@@ -10,11 +10,12 @@ template <typename DurationType = std::chrono::milliseconds, typename AnimationP
 class SequenceAnimationImpl : public CAnimation<DurationType>
 {
 public:
-    SequenceAnimationImpl() = default;
+    SequenceAnimationImpl() : m_Start{m_AnimationList.begin()} {}
     template <typename... Args>
     explicit SequenceAnimationImpl(Args&&... args)
     {
         fillContainerFromVariadic(std::forward<Args>(args)...);
+        m_Start = m_AnimationList.begin();
     }
     template <typename ContainerType>
     void addAnimationsFromContainer(ContainerType&& animation_container)
@@ -39,23 +40,26 @@ public:
                 m_AnimationList.push_back(animation);
             }
         }
+        m_Start = m_AnimationList.begin();
     }
     template <typename... Args>
     void addAnimations(Args&&... args)
     {
         fillContainerFromVariadic(std::forward<Args>(args)...);
+        m_Start = m_AnimationList.begin();
     }
+
+protected: // methods
     virtual void play_impl(DurationType const& t) override
     {
-        if (m_AnimationList.cbegin() != m_AnimationList.cend())
+        if (m_Start != m_AnimationList.end())
         {
-            auto& top_animation = m_AnimationList.front();
+            auto& top_animation = *m_Start;
             top_animation->play(t);
             if (top_animation->isFinished())
             {
                 top_animation->invokeFinishedCallback();
-                m_AnimationList.pop_front();
-                CAnimation<DurationType>::m_Finished = m_AnimationList.empty();
+                ++m_Start;
             }
         }
         else
@@ -63,20 +67,31 @@ public:
             CAnimation<DurationType>::m_Finished = true;
         }
     }
-
-protected:
+    virtual void reset_impl() override
+    {
+        for (auto& animation : m_AnimationList)
+        {
+            animation->reset();
+        }
+        m_Start = m_AnimationList.begin();
+    }
     template <typename T, typename... Args>
     void fillContainerFromVariadic(T&& first, Args&&... args)
     {
         static_assert(std::is_constructible_v<AnimationPointerType, decltype(first)>);
-        assert(first);
+        assert(static_cast<bool>(first));
         m_AnimationList.push_back(std::forward<T>(first));
         if constexpr (sizeof...(Args) > 0)
         {
             fillContainerFromVariadic(std::forward<Args>(args)...);
         }
     }
-    std::deque<AnimationPointerType> m_AnimationList;
+
+protected: // members
+    using InnerAnimationContainer = std::deque<AnimationPointerType>;
+
+    InnerAnimationContainer m_AnimationList;
+    typename InnerAnimationContainer::iterator m_Start;
 };
 
 using SequenceAnimation = SequenceAnimationImpl<>;

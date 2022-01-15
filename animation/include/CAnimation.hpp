@@ -30,8 +30,17 @@ public:
         }
     }
 
-protected:
+    virtual void reset() override
+    {
+        m_Finished = false;
+        reset_impl();
+    }
+
+protected: // methods
     virtual void play_impl(DurationType const& t) = 0;
+    virtual void reset_impl() = 0;
+
+protected: // members
     std::function<void()> m_FinishedCallback;
     bool m_Finished;
 };

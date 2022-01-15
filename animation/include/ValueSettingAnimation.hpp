@@ -82,15 +82,17 @@ public:
         : m_Object{obj}, m_StartValue{start}, m_EndValue{end}, m_CurrentTime{IAnimationImpl<DurationType>::ZERO_DURATION},
           m_Duration{duration}, m_TimeTransformer{detail::mapEnumToFunctor(type)}
     {
-        assert(m_StartValue != m_EndValue && m_Duration >= IAnimationImpl<DurationType>::ZERO_DURATION);
+        assert(obj && m_StartValue != m_EndValue && m_Duration >= IAnimationImpl<DurationType>::ZERO_DURATION);
     }
     ValueSettingAnimationImpl(const std::shared_ptr<Obj>& obj, ValueType const& start, ValueType const& end, DurationType const& duration,
                               const std::function<float(float)>& time_transforemer)
         : m_Object{obj}, m_StartValue{start}, m_EndValue{end}, m_CurrentTime{IAnimationImpl<DurationType>::ZERO_DURATION},
           m_Duration{duration}, m_TimeTransformer{time_transforemer}
     {
-        assert(m_TimeTransformer && m_StartValue != m_EndValue && m_Duration >= IAnimationImpl<DurationType>::ZERO_DURATION);
+        assert(obj && m_TimeTransformer && m_StartValue != m_EndValue && m_Duration >= IAnimationImpl<DurationType>::ZERO_DURATION);
     }
+
+protected: // methods
     virtual void play_impl(DurationType const& t) override
     {
         m_CurrentTime += t;
@@ -118,8 +120,9 @@ public:
             CAnimation<DurationType>::m_Finished = true;
         }
     }
+    virtual void reset_impl() override { m_CurrentTime = IAnimationImpl<DurationType>::ZERO_DURATION; }
 
-protected:
+protected: // members
     std::weak_ptr<Obj> m_Object;
     ValueType m_StartValue;
     ValueType m_EndValue;

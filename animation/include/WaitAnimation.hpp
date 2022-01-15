@@ -12,13 +12,15 @@ public:
         assert(m_Duration > IAnimationImpl<DurationType>::ZERO_DURATION);
     }
 
-    void play_impl(DurationType const& t)
+protected: // methods
+    virtual void play_impl(DurationType const& t) override
     {
         m_CurrentTime += t;
         CAnimation<DurationType>::m_Finished = m_CurrentTime >= m_Duration;
     }
+    virtual void reset_impl() override { m_CurrentTime = IAnimationImpl<DurationType>::ZERO_DURATION; }
 
-protected:
+protected: // members
     DurationType m_Duration;
     DurationType m_CurrentTime;
 };

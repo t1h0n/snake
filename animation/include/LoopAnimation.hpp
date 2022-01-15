@@ -74,7 +74,6 @@ protected: // methods
 
 protected: // members
     AnimationPointerType m_LoopedAnimation;
-    std::function<void()> m_FinishedCallback;
     std::int32_t m_CurrentTimesLooped;
     std::int32_t m_RequiredTimesLooped;
 };

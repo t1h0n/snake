@@ -1,5 +1,5 @@
 #pragma once
-#include "IAnimation.hpp"
+#include "CAnimation.hpp"
 #include <cassert>
 #include <iostream>
 #include <memory>

@@ -10,11 +10,12 @@ public:
     explicit DoActionImpl(std::function<void()>&& callback) : m_StartedCallback{std::move(callback)} { assert(m_StartedCallback); }
 
 protected: // methos
-    void play_impl(DurationType const& /* t */) override
+    virtual void play_impl(DurationType const& /* t */) override
     {
         m_StartedCallback();
         CAnimation<DurationType>::m_Finished = true;
     }
+    virtual void reset_impl() override {}
 
 protected: // members
     std::function<void()> m_StartedCallback;
